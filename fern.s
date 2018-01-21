@@ -8,7 +8,9 @@
 	; rsp	wskaznik stosu
 	; rax	uzywane w div i potem przy mul
 	; rbx   uzywane w div
-
+    ; r8 p1
+    ; r9  p12
+    ; r10 p123
 
 
 	; xmm0	x0
@@ -18,10 +20,10 @@
 
 
 section .text
-    ;extern glVertex2f
-    extern putPixel
+    extern glVertex2d
+
 	global fern
-    ;global putPixel
+    extern putPixel
 default rel
 section .data
 	const0_0:	dq	0.0
@@ -32,6 +34,7 @@ section .data
 	constmin0_15:	dq	-0.15
 	const0_28:	dq	0.28
 	const0_26:	dq	0.26
+	constmin0_26: dq -0.26
 	const0_24:	dq	0.24
 	const0_44:	dq	0.44
 	const0_2:	dq	0.2
@@ -39,21 +42,27 @@ section .data
 	const0_22:	dq	0.22
 	const0_16:	dq	0.16
 	const3_0:	dq	3.0
-	constX:		dq	6.0
-	constY:		dq	11.0
+	const5_0:   dq  5.0
+	const1_0:   dq  1.0
 
-BarnsleyFern:
+
+fern:
 	push rbp
 	mov rbp, rsp
 
-	cmp rdi, 0
+    mov r8, rsi
+    mov r9, rdx
+    mov r10, rcx
+    mov rcx, rdi
+	cmp rcx, 0
 	jz exit
+
 
 	movsd xmm4, [const0_0]
 	movsd xmm0, xmm4		; x=0
 	movsd xmm2, xmm0		; y=0
-	mov r11, rdx			; p12 -> r11
-	
+	;mov r11, rdx			; p12 -> r11
+
 
 whileIteration:
 
@@ -69,7 +78,7 @@ whileIteration:
 	mov rbx, 100
 	div rbx				; dzieli rdx:rax przez to co po div (rbx), wynik (calosci) w rax, reszta w rdx
 
-	cmp rdx, rsi			; if (rand < p1) (x,y) = (0.85x + 0.04y, -0.04x + 0.85y +1.6)
+	cmp rdx, r8			; if (rand < p1) (x,y) = (0.85x + 0.04y, -0.04x + 0.85y +1.6)
 	jge else1
 
 	movsd xmm1, xmm0
@@ -95,7 +104,7 @@ whileIteration:
 
 else1:
 	; if(rand >= p1 && rand < p12) (x,y) = (-0.15x + 0.28y, 0.26x + 0.24y + 0.44)
-	cmp rdx, r11
+	cmp rdx, r9
 	jge else2
 
 	movsd xmm1, xmm0
@@ -120,7 +129,7 @@ else1:
 
 else2:
 	; if (rand >= p12 && rand < p123) (x,y) = (0.20x - 0.26y, 0.23x + 0.22y + 1.6)
-	cmp rdx, rcx
+	cmp rdx, r10
 	jge else3
 
 	movsd xmm1, xmm0
@@ -152,20 +161,34 @@ else3:
 	mulsd xmm3, xmm4		; y = 0.16y
 
 paint:
-	movsd xmm0, xmm1		; x0 = x1
-    movsd xmm2, xmm3		; y0 = y1
+    movsd xmm6, xmm0
+    movsd xmm7, xmm1
 
+	movsd xmm0, xmm1
+    movsd xmm1, xmm3
+    movsd xmm8, [const3_0]
+    divsd xmm0, xmm8
+    movsd xmm8, [const5_0]
+    divsd xmm1, xmm8
+    movsd xmm8, [const1_0]
+    subsd xmm1, xmm8
 
+    movsd xmm1, [const0_22]
+    movsd xmm0, [const0_16]
     call putPixel
+    movsd xmm0, xmm6
+    movsd xmm1, xmm7
+
+
 
 endWhile:
 	movsd xmm0, xmm1		; x0 = x1
 	movsd xmm2, xmm3		; y0 = y1
 
-	dec rdi				; pozostale iteracje -= 1
+	dec rcx				; pozostale iteracje -= 1
 
-	cmp rdi, 0
-	jg whileIteration
+	;cmp rcx, 0
+	;jg whileIteration
 
 exit:
 	mov rsp, rbp
