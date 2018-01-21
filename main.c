@@ -12,15 +12,14 @@ void keyboard(unsigned char c,int x, int y);
 void mouse(int button, int state, int x, int y);
 void barnsleyFern( unsigned long iter);
 void count(int diceThrow, float* x0, float* y0, float* x1, float* y1);
-
+void fern(int , int , int , int );
 int p1=85,p2=7,p3=7,p4=1;
 int width, hight;
 int iterations=500;
-
-
+ void putPixel(float x, float y);
 int main(int argc, char**argv)
 {
-    unsigned long num;
+    //unsigned long num;
 
    // printf("Enter number of iterations : ");
    // scanf("%ld",&num);
@@ -116,7 +115,7 @@ void render(void)
 
     glBegin(GL_POINTS);
     glColor3f(0,1,0);
-    barnsleyFern( iterations);
+    fern(iterations,p1,(p1+p2),(p1+p2+p3));
 
 
     glEnd();
@@ -187,3 +186,7 @@ void barnsleyFern( unsigned long iter){
     }
 
 }*/
+ void putPixel(float x, float y)
+{
+    glVertex2f(x,y);
+}

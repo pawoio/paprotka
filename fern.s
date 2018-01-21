@@ -1,44 +1,27 @@
 	; SPIS REJESTROW
 
-	; rdi	ilość wowołan //wskaznik na wskaznik na pierwszy piksel (lewy gorny rog) jako argument
-	; rsi	p1 np//szerokosc bitmapy jako argument
-	; rdx	p12 np//wysokosc bitmapy jako argument, uzywane w div
-	; rcx	p123 na//licznik iteracji
+	; rdi	ilość wowołan
+	; rsi	p1
+	; rdx	p12
+	; rcx	p123
 	; rbp	wskaznik ramki
 	; rsp	wskaznik stosu
 	; rax	uzywane w div i potem przy mul
 	; rbx   uzywane w div
 
 
-	; r8	argument p1
-	; r9	argument p12
-	; r10	argument p123
-	; r11	wysokosc bitmapy
-	; r12	pomocniczy przy wyliczaniu wspolrzednych i przy malowaniu
-	; r13	wskaznik na pierwszy piksel
-	; r14
-	; r15
 
 	; xmm0	x0
 	; xmm1	x1
 	; xmm2	y0
 	; xmm3	y1
-	; xmm4	rejestr pomocniczy do wczytywania stalych
-	; xmm5	rejestr pomocniczy przy wyliczaniu nowych wspolrzednych
-	; xmm6	x1 przy wyliczaniu punktow do malowania
-	; xmm7	y1 przy wyliczaniu punktow do malowania
-	; xmm8
-	; xmm9
-	; xmm10
-	; xmm11
-	; xmm12
-	; xmm13
-	; xmm14
-	; xmm15
+
 
 section .text
-	global BarnsleyFern
-
+    ;extern glVertex2f
+    extern putPixel
+	global fern
+    ;global putPixel
 default rel
 section .data
 	const0_0:	dq	0.0
@@ -70,7 +53,7 @@ BarnsleyFern:
 	movsd xmm0, xmm4		; x=0
 	movsd xmm2, xmm0		; y=0
 	mov r11, rdx			; p12 -> r11
-	;mov r10, [rbp+16]		; p123 -> r10
+	
 
 whileIteration:
 
@@ -171,8 +154,9 @@ else3:
 paint:
 	movsd xmm0, xmm1		; x0 = x1
     movsd xmm2, xmm3		; y0 = y1
-    .glob glVertex2f
-    call glVertex2f
+
+
+    call putPixel
 
 endWhile:
 	movsd xmm0, xmm1		; x0 = x1
