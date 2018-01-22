@@ -1,4 +1,4 @@
-	; SPIS REJESTROW
+; SPIS REJESTROW
 
 	; rdi	ilość wowołan
 	; rsi	p1
@@ -19,12 +19,7 @@
 	; xmm3	y1
 
 
-section .text
-    extern glVertex2d
 
-	global fern
-    extern putPixel
-default rel
 section .data
 	const0_0:	dq	0.0
 	const0_85:	dq	0.85
@@ -44,17 +39,30 @@ section .data
 	const3_0:	dq	3.0
 	const5_0:   dq  5.0
 	const1_0:   dq  1.0
+	iter: dq 0
+section .text
+    extern glVertex2d
 
+	global fern
+    extern putPixel
+    extern test
+default rel
 
 fern:
 	push rbp
 	mov rbp, rsp
 
+    push rbx
+    push r8
+    push r9
+    push r10
+
     mov r8, rsi
     mov r9, rdx
     mov r10, rcx
-    mov rcx, rdi
-	cmp rcx, 0
+    mov qword [iter], rdi
+
+	cmp qword [iter], 0
 	jz exit
 
 
@@ -74,11 +82,15 @@ whileIteration:
 	; proporcje 85 : 7 : 7 : 1
 
 	rdrand rax
-	mov rdx,0
-	mov rbx, 100
-	div rbx				; dzieli rdx:rax przez to co po div (rbx), wynik (calosci) w rax, reszta w rdx
 
-	cmp rdx, r8			; if (rand < p1) (x,y) = (0.85x + 0.04y, -0.04x + 0.85y +1.6)
+	mov rdx,0
+
+	mov rbx, 100
+
+	div rbx
+
+	; dzieli rdx:rax przez to co po div (rbx), wynik (calosci) w rax, reszta w rdx
+   	cmp rdx, r8			; if (rand < p1) (x,y) = (0.85x + 0.04y, -0.04x + 0.85y +1.6)
 	jge else1
 
 	movsd xmm1, xmm0
@@ -99,7 +111,8 @@ whileIteration:
 	movsd xmm4, [const1_6]
 	addsd xmm3, xmm4		; y = -0.04x + 0.85y +1.6
 
-	jmp paint
+    jmp paint
+
 
 
 else1:
@@ -124,8 +137,8 @@ else1:
 	addsd xmm3, xmm5		; 0.26x + 0.24y
 	movsd xmm4, [const0_44]
 	addsd xmm3, xmm4		; y = 0.26x + 0.24y + 0.44
+    jmp paint
 
-	jmp paint
 
 else2:
 	; if (rand >= p12 && rand < p123) (x,y) = (0.20x - 0.26y, 0.23x + 0.22y + 1.6)
@@ -149,8 +162,8 @@ else2:
 	addsd xmm3, xmm5		; 0.23x + 0.22y
 	movsd xmm4, [const1_6]
 	addsd xmm3, xmm4		; y = 0.23x + 0.22y + 1.6
+    jmp paint
 
-	jmp paint
 
 else3:
 	; if (rand>= p1+p2+p3) (x,y) = (0, 0.16y)
@@ -161,21 +174,25 @@ else3:
 	mulsd xmm3, xmm4		; y = 0.16y
 
 paint:
+
     movsd xmm6, xmm0
     movsd xmm7, xmm1
 
 	movsd xmm0, xmm1
     movsd xmm1, xmm3
-    movsd xmm8, [const3_0]
-    divsd xmm0, xmm8
-    movsd xmm8, [const5_0]
-    divsd xmm1, xmm8
-    movsd xmm8, [const1_0]
-    subsd xmm1, xmm8
+   ; movsd xmm8, [const3_0]
+    ;divsd xmm0, xmm8
+   ; movsd xmm8, [const5_0]
+   ; divsd xmm1, xmm8
+   ; movsd xmm8, [const1_0]
+   ; subsd xmm1, xmm8
 
-    movsd xmm1, [const0_22]
-    movsd xmm0, [const0_16]
+   ; movq xmm1, [const0_22]
+   ; movq xmm0, [const0_16]
+   ; mov rdi, qword[iter]
+    ;call test
     call putPixel
+
     movsd xmm0, xmm6
     movsd xmm1, xmm7
 
@@ -185,12 +202,15 @@ endWhile:
 	movsd xmm0, xmm1		; x0 = x1
 	movsd xmm2, xmm3		; y0 = y1
 
-	dec rcx				; pozostale iteracje -= 1
+	dec qword [iter]		; pozostale iteracje -= 1
 
-	;cmp rcx, 0
-	;jg whileIteration
-
+	cmp qword[iter], 0
+    jnz whileIteration
 exit:
+    pop r10
+    pop r9
+    pop r8
+    pop rbx
 	mov rsp, rbp
 	pop rbp
 	ret
